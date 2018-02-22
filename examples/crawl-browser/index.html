@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+        <script src="/lib/dom-converter/bundle.js"></script>
+        <style>
+            .polaroid {
+                box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.3);
+            }
+
+            .polaroid__header {
+                padding-bottom: 30%;
+                position: relative;
+                background-position: center;
+                background-size: cover;
+                background-repeat: no-repeat;
+            }
+
+            .user-stats {
+                padding: 16px;
+            }
+
+            .avatar {
+                position: absolute;
+                bottom: -32px;
+                left: 16px;
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                background-color: rgb(200, 200, 200);
+                border: 5px solid white;
+                background-image: url(/examples/crawl-browser/D661E09EEA497B979C3205C5661A8A84962B6DC047A8ECD18A0F0541D7FB3772_227x150.jpg);
+                background-position: center;
+                background-size: cover;
+                background-repeat: no-repeat;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div data-sketch>
+            <article class="polaroid polaroid--left">
+                <header class="polaroid__header" style="background-image: url(/examples/crawl-browser/D661E09EEA497B979C3205C5661A8A84962B6DC047A8ECD18A0F0541D7FB3772_227x150.jpg);">
+                    <img src="/examples/crawl-browser/D661E09EEA497B979C3205C5661A8A84962B6DC047A8ECD18A0F0541D7FB3772_227x150.jpg">
+                    <div class="avatar"></div>
+                </header>
+                <aside>
+                    <div class="user-stats">
+                        <h2>John Smith</h2>
+                        <h3>Rassgata 240</h3>
+                    </div>
+                </aside>
+            </article>
+        </div>
+        <div data-sketch>
+            <article class="polaroid polaroid--left">
+                <header class="polaroid__header" style="background-image: url(/examples/crawl-browser/D661E09EEA497B979C3205C5661A8A84962B6DC047A8ECD18A0F0541D7FB3772_227x150.jpg);">
+                    <div class="avatar"></div>
+                </header>
+                <aside>
+                    <div class="user-stats">
+                        <h2>John Smith</h2>
+                        <h3>Rassgata 240</h3>
+                    </div>
+                </aside>
+            </article>
+        </div>
+    </body>
+</html>
