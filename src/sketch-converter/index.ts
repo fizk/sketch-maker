@@ -2,7 +2,7 @@ import {
     createRect, createShapeGroup, createSketchBitmap, createSketchBorder,
     createSketchColor,
     createSketchCurvePoint,
-    createSketchFill, createSketchGroup,
+    createSketchFill, createSketchGroup, createSketchMSJSONImageReference,
     createSketchPath,
     createSketchRectangle,
     createSketchShadow,
@@ -30,17 +30,18 @@ const traverse = (node: GenericNode, offsetX: number = 0, offsetY: number = 0): 
             path1,
             createRect(node.width, node.height /*, node.x, node.y*/)
         );
-
         return [createShapeGroup(
             'Text Layer',
             [sketchLayer1],
             node.x - offsetX,
             node.y - offsetY,
             createSketchStyle(
-                [createSketchFill(createSketchColor(
-                    (<TextNode>node).style.color.r,
-                    (<TextNode>node).style.color.g,
-                    (<TextNode>node).style.color.b, 0.5)
+                [createSketchFill(
+                    createSketchColor(
+                        (<TextNode>node).style.color.r,
+                        (<TextNode>node).style.color.g,
+                        (<TextNode>node).style.color.b, 0.5
+                    )
                 )],
                 [],
                 []
@@ -111,7 +112,10 @@ const traverse = (node: GenericNode, offsetX: number = 0, offsetY: number = 0): 
                         (<ShapeNode>node).style.backgroundColor.g,
                         (<ShapeNode>node).style.backgroundColor.b,
                         (<ShapeNode>node).style.backgroundColor.a
-                    )
+                    ),
+                    (<ShapeNode>node).style.backgroundImage
+                        ? createSketchMSJSONImageReference((<ShapeNode>node).style.backgroundImage.name)
+                        : null,
                 )],
                 ((<ShapeNode>node).style.border || []).map(border => {
                     return createSketchBorder(

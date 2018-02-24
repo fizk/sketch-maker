@@ -1,4 +1,5 @@
 import {
+    FilePathString,
     Position, SHA1, SketchArtboard, SketchBitmap, SketchBlur,
     SketchBorder, SketchBorderOptions,
     SketchColor, SketchColorControls,
@@ -6,7 +7,7 @@ import {
     SketchDocument, SketchExportOptions,
     SketchFill, SketchGraphicsContextSettings, SketchGroup, SketchInnerShadow,
     SketchLayer,
-    SketchMeta, SketchMSAttributedString,
+    SketchMeta, SketchMSAttributedString, SketchMSJSONFileReference,
     SketchPage,
     SketchPath,
     SketchRect,
@@ -102,9 +103,10 @@ export const createSketchColor = (
 };
 
 export const createSketchFill = (
-    color: SketchColor
+    color: SketchColor,
+    image?: SketchMSJSONFileReference,
 ): SketchFill => {
-    return {
+    return Object.assign({
         _class: "fill",
         color: color,
         fillType: 0,
@@ -112,7 +114,20 @@ export const createSketchFill = (
         noiseIndex: 0,
         noiseIntensity: 0,
         patternFillType: 1,
-        patternTileScale: 1
+        patternTileScale: 1,
+    }, image ? {
+        fillType: 4,
+        image: image
+    } : {});
+};
+
+export const createSketchMSJSONImageReference = (
+    name: string
+) => {
+    return {
+        _class: 'MSJSONFileReference',
+        _ref_class: 'MSImageData',
+        _ref: `images/${name}`,
     }
 };
 
@@ -398,12 +413,6 @@ export const createUserDocument = (
 
 };
 
-// export const createSketchOval = (): SketchOval => {};
-// export const createSketchShapeGroup = (): SketchShapeGroup => {};
-// export const createSketchShapePath = (): SketchShapePath => {};
-
-// export const createSketchSymbolInstance = (): SketchSymbolInstance => {};
-
 export const createSketchBitmap = (
     name: string = 'Image',
     hash: SHA1,
@@ -434,11 +443,7 @@ export const createSketchBitmap = (
         shouldBreakMaskChain: false,
         fillReplacesImage: false,
         style: style,
-        image: {
-            _class: "MSJSONFileReference",
-            _ref: `images/${hash}`,
-            _ref_class: "MSImageData"
-        },
+        image: createSketchMSJSONImageReference(hash),
         resizingConstraint: 63,
     }
 };
@@ -618,3 +623,8 @@ export const createSketchSymbolMaster = (
         }
     }
 };
+
+// export const createSketchOval = (): SketchOval => {};
+// export const createSketchShapeGroup = (): SketchShapeGroup => {};
+// export const createSketchShapePath = (): SketchShapePath => {};
+// export const createSketchSymbolInstance = (): SketchSymbolInstance => {};

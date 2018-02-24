@@ -86,6 +86,7 @@ export type SketchFill = {
     isEnabled: boolean,
     color: SketchColor,
     fillType: number,
+    image?: SketchMSJSONFileReference,
     // gradient: SketchGradient,
     noiseIndex: number,
     noiseIntensity: number,

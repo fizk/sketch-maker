@@ -26,10 +26,10 @@ const getStuff = (url: string | null) => {
                 document.body.removeChild(canvas);
                 resolve({
                     naturalWidth: img.naturalWidth,
-                        naturalHeight: img.naturalHeight,
-                        base64: dataURL,
-                        name: sha1(dataURL),
-                        ext: 'png'
+                    naturalHeight: img.naturalHeight,
+                    base64: dataURL,
+                    name: sha1(dataURL),
+                    ext: 'png'
                 });
             } catch (error) {
                 document.body.removeChild(canvas);
