@@ -157,9 +157,297 @@ getDataFromBrowser('http://localhost:9090', '[data-sketch]')
 
 This is how it could look like.
 
+## Hoist everything up to {0,0}
+The components that you are extracting from the HTML page could be located where ever on it. Maybe you are creating a Symbols
+library out of your component and you want therefor them to begin at {x: 0, y:0}.
 
+For that there is a function under `./dom-coverter/hoist.ts` that will take one component and set its XY to zero and pull
+all the children accordingly. 
 
+```typescript
+import {GenericNode, ResourceType} from './@types/tree';
+import getDataFromBrowser from './browser';
+import hoist from './dom-converter/hoist';
 
+getDataFromBrowser('http://localhost:9090/examples/crawl-browser', '[data-sketch]')
+    .then((components: GenericNode[]) => {
 
+        //HOIST: Hoist the root component up to {0, 0}
+        //  and for every child to follow that.
+        return components.map(hoist);
+    })
+    .then(console.log)
+    .catch(console.error);
+```
 
+## Get the resources.
+HTML not only contains text, it will also contain binary data like images. When the `dom-converter` encounters something that resolves 
+to binary data, like a `<img />` tag, it will extract the data into a **Base64** string and attach it to that node. For example:
+the `Image` node looks like this:
+
+```typescript
+export interface ImageNode extends Terminal {
+    style: ShapeNodeStyle,
+    image: {
+        name: SHA1,
+        naturalWidth: number,
+        naturalHeight: number,
+        base64: Base64String,
+        ext: string,
+    }
+}
+```
+
+Sketch on the other hand, does'nt contain the binary data in the node directly, it will store the actual file in a folder and then
+reference it in the node via SHA1 reference.
+
+The `./resource/extractor` contains a function that can go through the _in-between format_ and extract all the resources out of it.
+
+In the example below, I'm going through an array of components, so I need to flatten the array coming out.
+
+```typescript
+import {GenericNode, ResourceType} from './@types/tree';
+import bemConverter from './bem-converter';
+import getDataFromBrowser from './browser';
+import findResources from './resources-extractor';
+
+getDataFromBrowser('http://localhost:9090/examples/crawl-browser', '[data-sketch]')
+
+    .then((components: GenericNode[]) => {
+        return components.map(bemConverter);
+    })
+    .then((components: GenericNode[]) => {
+
+        //Extract all the resources into an array.
+        const resources: ResourceType[] = components.map((child: GenericNode) => findResources(child))
+            .reduce((previous: ResourceType[], current: ResourceType[]) =>[...previous, ...current], []);
+        return [components, resources]
+    })
+    .then(console.log)
+    .catch(console.error);
+```
+## I want my Sketch components
+No we can finally start to convert our _in-between format_ data in to **Sketch** data. We have all kinds of options here.
+But first let's explore that it takes to create a valid **Sketch** file. The file needs to be a _zipped_ folder with this
+structure
+
+```
+|
++ -- user.json
+|
++ -- meta.json
+|
++ -- document.json
+|
++ -- images
+|  |
+|  + -- <hash>.png
+|  |
+|  ` -- <hash>.png
+|
++ --pages
+|  |
+|  + -- <uuid>.json
+|  |
+|  ` -- <uuid>.json
+|
+`previews
+   |
+   ` -- preview.png
+```
+So all these files need to be generated.
+
+### One big page
+Lets start simple and just take the whole HTML page and for each component found, convert it into a corresponding
+Sketch Page.
+
+The main part here is the `./sketch-converter/index.ts` file that exports a function that takes in a `GenericNode` from
+our _in-between format_ and returns an array of `SketchLayer` objects, which is the most generic object of the
+Sketch file format, a `SketchLayer` can be a:
+```typescript
+export type SketchLayer =
+    | SketchText
+    | SketchShapeGroup
+    | SketchShapePath
+    | SketchBitmap
+    | SketchSymbolInstance
+    | SketchGroup
+    | SketchRectangle
+    | SketchOval
+```
+From that we can create our pages.
+```typescript
+const sketchComponents: SketchLayer[][] = components.map((component: GenericNode) => sketchConverter(component));
+const pages = sketchComponents.map((page, i) => createPage(page, `Page ${i}`));
+```
+
+...so this is taking `components` which is an array of `GenericNode` objects and converting it into an array of an array
+of `SketchLayer` objects and then for each of these arrays, converting them into Sketch Pages.
+
+Next, we need to extract information from these pages, to create the _meta_, _user_ and _document_ objects.
+
+```typescript
+const document = createSketchDocument(pages);
+const meta = createMetaDocument(pages);
+const user = createUserDocument([document], pages);
+```
+This is just extracting the important bits from the pages, like their UUID ans such to be able to like everything together.
+
+Lastly, we can put all these objects together into onw and pass it on.
+
+The whole code looks something like this: (I left out the hoisting and BEM stuff to emphasise the important bits)
+```typescript
+import {
+    createMetaDocument,
+    createPage,
+    createSketchDocument,
+    createUserDocument
+} from './sketch-converter/creators';
+import {GenericNode, ResourceType} from './@types/tree';
+import {SketchFile, SketchLayer, SketchPage} from './@types/sketch';
+import sketchConverter from './sketch-converter';
+import getDataFromBrowser from './browser';
+import findResources from './resources-extractor';
+
+getDataFromBrowser('http://localhost:9090', '[data-sketch]')
+    .then((components: GenericNode[]) => {
+        const resources: ResourceType[] = components.map((child: GenericNode) => findResources(child))
+            .reduce((previous: ResourceType[], current: ResourceType[]) =>[...previous, ...current], []);
+        return [components, resources]
+    })
+    .then(([components, resources]: [GenericNode[], ResourceType[]]) => {
+
+        const sketchComponents: SketchLayer[][] = components.map((component: GenericNode) => sketchConverter(component));
+        const pages = sketchComponents.map((page, i) => createPage(page, `Page ${i}`));
+
+        const document = createSketchDocument(pages);
+        const meta = createMetaDocument(pages);
+        const user = createUserDocument([document], pages);
+
+        return {
+            resources,
+            pages,
+            document,
+            meta,
+            user
+        }
+    }).catch(console.error)
+```
+
+### Symbols library
+What I often like to do is to create a Sketch file that one empty Page and then all my components as symbols in a
+symbols library. To do that lets first take a look at the HTML document.
+
+The HTML is structured like this:
+```html
+<div data-sketch="component/one">
+    <div class="block">...component one...</div>
+</div>
+<div data-sketch="component/two">
+    <div class="block">...component two...</div>
+</div>
+```
+To put it in plain english: I have a wrapper for each component that provides a name for the component (through the `data-sketch`
+attribute) and an entry point (also through the `data-sketch` attribute). Then I expect the wrapper to only has one child
+which is the component itself.
+
+So after I've converted the whole page into an array of `GenericNode`s, for each of those nodes I will get the name of the
+component (via the `<div data-sketch="component/one">` bit), and from the first child of that node (that would be 
+the `<div class="block">...component one...</div>` bit) I will convert into a `SketchLayer` object. What comes back 
+will be wrapped in a `SketchSymbolMaster` object via the `createSketchSymbolMaster()` function, which need a name (`data-sketch` bit),
+a width and a height (which comes from the `<div class="block">` bit) and the shape (which is the `SketchLayer` bit).
+
+This will give me an array of `SketchSymbolMaster` which will become my first page. I then just create an empty page so that the
+person using the Sketch file has something to draw on.
+
+The rest is pretty much the same as in the example above. The _meta_, _user_ and _document_ are derived from these pages
+and the everything is mashed up into one object and returned.
+
+Lets see how that looks like in code:
+
+```typescript
+import {
+    createMetaDocument,
+    createPage,
+    createSketchDocument, 
+    createSketchSymbolMaster,
+    createUserDocument
+} from './sketch-converter/creators';
+import {GenericNode, ResourceType} from './@types/tree';
+import {SketchFile, SketchLayer, SketchPage, SketchSymbolMaster} from './@types/sketch';
+import sketchConverter from './sketch-converter';
+import getDataFromBrowser from './browser';
+import findResources from './resources-extractor';
+
+getDataFromBrowser('http://localhost:9090', '[data-sketch]')
+    .then((components: GenericNode[]) => {
+        const resources: ResourceType[] = components.map((child: GenericNode) => findResources(child))
+            .reduce((previous: ResourceType[], current: ResourceType[]) =>[...previous, ...current], []);
+        return [components, resources]
+    })
+    .then(([components, resources]: [GenericNode[], ResourceType[]]) => {
+
+        const symbols: SketchSymbolMaster[] = components.map((node: GenericNode) => {
+            if (node.hasOwnProperty('children') && node.children.length > 0) {
+                const shapes: SketchLayer[] = sketchConverter(<GenericNode>node.children[0]);
+                return createSketchSymbolMaster(
+                    node.attributes['data-sketch'],
+                    (<GenericNode>node).children[0].width,
+                    (<GenericNode>node).children[0].height,
+                    shapes
+                );
+            } else {
+                return createSketchSymbolMaster(
+                    node.attributes['data-sketch'],
+                    (<GenericNode>node).children[0].width,
+                    (<GenericNode>node).children[0].height,
+                    []
+                )
+            }
+        });
+
+        const symbolsPage: SketchPage = createPage(symbols, 'Symbols');
+        const mainPage: SketchPage = createPage([], 'Page 1');
+
+        const document = createSketchDocument([mainPage, symbolsPage]);
+        const meta = createMetaDocument([mainPage, symbolsPage]);
+        const user = createUserDocument([document], [mainPage, symbolsPage]);
+
+        return {
+            resources,
+            pages: [mainPage, symbolsPage],
+            document,
+            meta,
+            user
+        };
+    }).catch(console.error)
+``` 
+ 
+### Other ways.
+Keeping everything separate like this means that you can write and construct your own rules and work-flows. If you can't
+wrap each component into a marker (like I did with `<div data-sketch />`) but have some other way of defining your
+components, you should be able use the functions provided... so go crazy... find your own way.  
+
+## Save the file
+Provide is a handy little function under `./zip/converter` that takes in a `SketchFile` type and returns you a GZIP buffer
+that you can save to disk via the `fs` functions.
+
+```typescript
+import * as fs from 'fs';
+import getDataFromBrowser from './browser';
+import {GenericNode, ResourceType} from './@types/tree';
+import zip from './zip-converter';
+import {SketchFile} from './@types/sketch';
+
+getDataFromBrowser('http://localhost:9090/examples/crawl-browser', '[data-sketch]')
+    .then((components: GenericNode[]) => {
+        //... do everything needed and return a SketchFile
+        return data: SketchFile = {...}
+    })
+    .then((sketchEntities: SketchFile) => {
+        const buffer: Buffer = zip(sketchEntities);
+        fs.writeFileSync('./test2.sketch', buffer, 'binary');
+    })
+    .catch(console.error);
+```
 

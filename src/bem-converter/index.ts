@@ -1,9 +1,8 @@
-import {GenericNode, GroupNode, NonTerminal} from "../@types/tree";
+import {GenericNode, GroupNode} from "../@types/tree";
 
-const traverse = (data: GenericNode): GenericNode => {
+const traverse = (node: GenericNode): GenericNode => {
 
-    if (data.hasOwnProperty('children')) {
-        const node: NonTerminal = <NonTerminal>data;
+    if (node.hasOwnProperty('children')) {
         const isBlock: boolean = node.classes.length > 0 && node.classes.some((item: string) => (
             item.match(/^([a-z0-9]*)([-_][a-z]*)?$/) !== null
         ));
@@ -18,7 +17,8 @@ const traverse = (data: GenericNode): GenericNode => {
                 y: node.y,
                 width: node.width,
                 height: node.height,
-                classes: node.classes
+                classes: node.classes,
+                attributes: {}
             };
 
             node.children = node.children.map(traverse);
@@ -32,7 +32,7 @@ const traverse = (data: GenericNode): GenericNode => {
         }
     }
 
-    return data;
+    return node;
 };
 
 export default traverse;

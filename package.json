@@ -7,8 +7,6 @@
     "test": "./node_modules/.bin/mocha -r ts-node/register ./src/test/**/*.ts",
     "test:watch": "./node_modules/.bin/mocha -r ts-node/register ./src/test/**/*.ts -w",
     "run": "./node_modules/.bin/tsc -w",
-    "go": "node ./lib/index.js",
-    "all": "node ./src/browser.js && ./node_modules/.bin/ts-node ./src/index.ts && node ./src/zip.js",
     "webkack": "./node_modules/.bin/webpack -w"
   },
   "author": "",

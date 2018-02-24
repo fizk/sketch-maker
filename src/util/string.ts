@@ -53,3 +53,8 @@ export const radius = (string: string, width: number, height: number): number =>
     return ints.reduce((prev: number, current: number) => current, 0);
 };
 
+export const backgroundImage = (string: string): string | null => {
+    const result = string.match(/url\("(.*)"\)/);
+    return result ? result[1] : null;
+};
+

@@ -1,3 +1,3 @@
-import * as run from './run'
+import run from './run'
 
 window['run']= run;

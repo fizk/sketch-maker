@@ -1,3 +1,5 @@
+import {ResourceType} from "./tree";
+
 export type UUID = string // with UUID v4 format
 export type SHA1 = string // with SHA1 format
 
@@ -10,6 +12,19 @@ export type SketchNestedPositionString = string // '{{0, 0}, {75.5, 15}}'
 export type Base64String = string
 
 export type FilePathString = string
+
+type SketchDocumentId = UUID
+
+type SketchPageId = UUID
+
+export type SketchPageReference = {
+    scrollOrigin: SketchPositionString,
+    zoomValue: number
+}
+
+export type SketchDocumentReference = {
+    pageListHeight: number,
+}
 
 export type SketchImageCollection = {
     _class: string, // imageCollection
@@ -467,21 +482,11 @@ export type SketchOval = {
     path: SketchPath
 }
 
-export type SketchLayer =
-    | SketchText
-    | SketchShapeGroup
-    | SketchShapePath
-    | SketchBitmap
-    | SketchSymbolInstance
-    | SketchGroup
-    | SketchRectangle
-    | SketchOval
-
 export type SketchSymbolMaster = {
     backgroundColor: SketchColor,
     _class: string, // symbolMaster
     do_objectID: UUID,
-    exportOptions: SketchExportOptions[],
+    exportOptions: SketchExportOptions,
     frame: SketchRect,
     hasBackgroundColor: boolean,
     hasClickThrough: boolean,
@@ -503,7 +508,20 @@ export type SketchSymbolMaster = {
     style: SketchStyle,
     symbolID: UUID,
     verticalRulerData: SketchRulerData
+    changeIdentifier?: number,
+    resizesContent?: boolean,
+    resizingConstraint: number,
 }
+
+export type SketchLayer =
+    | SketchText
+    | SketchShapeGroup
+    | SketchShapePath
+    | SketchBitmap
+    | SketchSymbolInstance
+    | SketchGroup
+    | SketchRectangle
+    | SketchOval
 
 // document.json
 export type SketchDocument = {
@@ -575,21 +593,16 @@ export type SketchMeta = {
     }
 }
 
-
-type SketchDocumentId = UUID
-
-type SketchPageId = UUID
-
-export type SketchPageReference = {
-    scrollOrigin: SketchPositionString,
-    zoomValue: number
-}
-
-export type SketchDocumentReference = {
-    pageListHeight: number,
-}
-
 // user.json
 export type SketchUser = {
     [key: string]: SketchPageReference | SketchDocumentReference
+}
+
+// whole document
+export type SketchFile = {
+    resources?: ResourceType[],
+    pages: SketchLayer[],
+    document: SketchDocument,
+    meta: SketchMeta,
+    user: SketchUser
 }

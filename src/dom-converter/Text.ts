@@ -1,6 +1,7 @@
 import {TextNode} from "../@types/tree";
 import {convertRGB} from '../util/string'
-export default (element: HTMLElement): TextNode => {
+
+export default (element: HTMLElement): Promise<TextNode> => {
     const range = document.createRange();
     range.setStart(element, 0);
     range.setEnd(element, element.textContent.length);
@@ -25,7 +26,7 @@ export default (element: HTMLElement): TextNode => {
     const styles = getComputedStyle(element.parentElement);
     const color = convertRGB(styles.color);
 
-    return {
+    return Promise.resolve({
         type: 'text',
         nodeName: element.nodeName,
         classes: [],
@@ -36,6 +37,7 @@ export default (element: HTMLElement): TextNode => {
         text: element.textContent,
         style: {
             color: color
-        }
-    };
+        },
+        attributes: {}
+    });
 }

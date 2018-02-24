@@ -8,18 +8,17 @@ import {
     createSketchShadow,
     createSketchStyle
 } from "./creators";
-import {GenericNode, GroupNode, ImageNode, NonTerminal, ShapeNode, TextNode} from "../@types/tree";
+import {GenericNode, GroupNode, ImageNode, ShapeNode, TextNode} from "../@types/tree";
 import {SketchLayer} from "../@types/sketch";
 
-const traverse = (data: GenericNode, offsetX: number = 0, offsetY: number = 0): SketchLayer[] => {
+const traverse = (node: GenericNode, offsetX: number = 0, offsetY: number = 0): SketchLayer[] => {
 
-    if (data.type === 'text') {
+    if (node.type === 'text') {
         // const shapeGroup1 = createSketchText(
         //     data.text,
         //     createRect(data.width, data.height, data.x, data.y)
         // );
         // everything.push(shapeGroup1);
-        const node = <TextNode> data;
         const path1 = createSketchPath([
             createSketchCurvePoint([0, 0], [0, 0], [0, 0]),
             createSketchCurvePoint([1, 0], [1, 0], [1, 0]),
@@ -38,29 +37,37 @@ const traverse = (data: GenericNode, offsetX: number = 0, offsetY: number = 0): 
             node.x - offsetX,
             node.y - offsetY,
             createSketchStyle(
-                [createSketchFill(createSketchColor(node.style.color.r, node.style.color.g, node.style.color.b, 0.5))],
+                [createSketchFill(createSketchColor(
+                    (<TextNode>node).style.color.r,
+                    (<TextNode>node).style.color.g,
+                    (<TextNode>node).style.color.b, 0.5)
+                )],
                 [],
                 []
             )
         )];
 
-    } else if (data.type === 'image') {
-        const node = <ImageNode> data;
+    } else if (node.type === 'image') {
         return [createSketchBitmap(
             undefined,
-            node.image.name,
+            (<ImageNode>node).image.name,
             createRect(node.width, node.height /*,node.x, node.y*/),
             createSketchStyle(
                 [createSketchFill(
-                    createSketchColor(node.style.backgroundColor.r, node.style.backgroundColor.g, node.style.backgroundColor.b, node.style.backgroundColor.a)
+                    createSketchColor(
+                        (<ImageNode>node).style.backgroundColor.r,
+                        (<ImageNode>node).style.backgroundColor.g,
+                        (<ImageNode>node).style.backgroundColor.b,
+                        (<ImageNode>node).style.backgroundColor.a
+                    )
                 )],
-                (node.style.border || []).map(border => {
+                ((<ImageNode>node).style.border || []).map(border => {
                     return createSketchBorder(
                         createSketchColor(border.color.r,border.color.g, border.color.b, border.color.a),
                         border.thickness
                     )
                 }),
-                (node.style.boxShadow || []).map(shadow => {
+                ((<ImageNode>node).style.boxShadow || []).map(shadow => {
                     return createSketchShadow(
                         createSketchColor(shadow.color.r, shadow.color.g, shadow.color.b, shadow.color.a),
                         shadow.blurRadius,
@@ -72,25 +79,24 @@ const traverse = (data: GenericNode, offsetX: number = 0, offsetY: number = 0): 
             )
         )];
 
-    } else if (data.type === 'shape') {
+    } else if (node.type === 'shape') {
 
-        const children: SketchLayer[] = (<NonTerminal> data).children.reduce((prev, current) => {
+        const children: SketchLayer[] = node.children.reduce((prev, current) => {
             prev.push(...traverse(<GenericNode> current, offsetX, offsetY));
             return prev;
         }, []);
 
-        const node = <ShapeNode> data;
         const path1 = createSketchPath([
-            createSketchCurvePoint([0, 0], [0, 0], [0, 0], undefined, undefined, node.style.radius),
-            createSketchCurvePoint([1, 0], [1, 0], [1, 0], undefined, undefined, node.style.radius),
-            createSketchCurvePoint([1, 1], [1, 1], [1, 1], undefined, undefined, node.style.radius),
-            createSketchCurvePoint([0, 1], [0, 1], [0, 1], undefined, undefined, node.style.radius)
+            createSketchCurvePoint([0, 0], [0, 0], [0, 0], undefined, undefined, (<ShapeNode>node).style.radius),
+            createSketchCurvePoint([1, 0], [1, 0], [1, 0], undefined, undefined, (<ShapeNode>node).style.radius),
+            createSketchCurvePoint([1, 1], [1, 1], [1, 1], undefined, undefined, (<ShapeNode>node).style.radius),
+            createSketchCurvePoint([0, 1], [0, 1], [0, 1], undefined, undefined, (<ShapeNode>node).style.radius)
         ]);
 
         const sketchLayer1 = createSketchRectangle(
             path1,
             createRect(node.width, node.height/*, node.x, node.y*/),
-            node.style.radius
+            (<ShapeNode>node).style.radius
         );
 
         const shapeGroup = createShapeGroup(
@@ -100,15 +106,20 @@ const traverse = (data: GenericNode, offsetX: number = 0, offsetY: number = 0): 
             node.y - offsetY,
             createSketchStyle(
                 [createSketchFill(
-                    createSketchColor(node.style.backgroundColor.r, node.style.backgroundColor.g, node.style.backgroundColor.b, node.style.backgroundColor.a)
+                    createSketchColor(
+                        (<ShapeNode>node).style.backgroundColor.r,
+                        (<ShapeNode>node).style.backgroundColor.g,
+                        (<ShapeNode>node).style.backgroundColor.b,
+                        (<ShapeNode>node).style.backgroundColor.a
+                    )
                 )],
-                (node.style.border || []).map(border => {
+                ((<ShapeNode>node).style.border || []).map(border => {
                     return createSketchBorder(
                         createSketchColor(border.color.r,border.color.g, border.color.b, border.color.a),
                         border.thickness
                     )
                 }),
-                (node.style.boxShadow || []).map(shadow => {
+                ((<ShapeNode>node).style.boxShadow || []).map(shadow => {
                     return createSketchShadow(
                         createSketchColor(shadow.color.r, shadow.color.g, shadow.color.b, shadow.color.a),
                         shadow.blurRadius,
@@ -122,14 +133,14 @@ const traverse = (data: GenericNode, offsetX: number = 0, offsetY: number = 0): 
         return [shapeGroup, ...children];
     } else {
 
-        const children: SketchLayer[] = (<NonTerminal> data).children.reduce((prev, current) => {
-            prev.push(...traverse(<GenericNode> current, data.x + offsetX, data.y + offsetY));
+        const children: SketchLayer[] = node.children.reduce((prev, current) => {
+            prev.push(...traverse(<GenericNode> current, node.x + offsetX, node.y + offsetY));
             return prev;
         }, []);
 
         return [createSketchGroup(
-            (<GroupNode> data).name,
-            createRect(data.width, data.height, data.x, data.y),
+            (<GroupNode>node).name,
+            createRect(node.width, node.height, node.x, node.y),
             children
         )];
     }

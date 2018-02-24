@@ -7,6 +7,7 @@
         <style>
             .polaroid {
                 box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.3);
+                width: 400px;
             }
 
             .polaroid__header {
@@ -15,6 +16,15 @@
                 background-position: center;
                 background-size: cover;
                 background-repeat: no-repeat;
+            }
+
+            .polaroid__image {
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                display: block;
             }
 
             .user-stats {
@@ -39,10 +49,9 @@
     </head>
 
     <body>
-        <div data-sketch>
+        <div data-sketch="polaroid/background">
             <article class="polaroid polaroid--left">
                 <header class="polaroid__header" style="background-image: url(/examples/crawl-browser/D661E09EEA497B979C3205C5661A8A84962B6DC047A8ECD18A0F0541D7FB3772_227x150.jpg);">
-                    <img src="/examples/crawl-browser/D661E09EEA497B979C3205C5661A8A84962B6DC047A8ECD18A0F0541D7FB3772_227x150.jpg">
                     <div class="avatar"></div>
                 </header>
                 <aside>
@@ -53,9 +62,10 @@
                 </aside>
             </article>
         </div>
-        <div data-sketch>
+        <div data-sketch="polaroid/image">
             <article class="polaroid polaroid--left">
-                <header class="polaroid__header" style="background-image: url(/examples/crawl-browser/D661E09EEA497B979C3205C5661A8A84962B6DC047A8ECD18A0F0541D7FB3772_227x150.jpg);">
+                <header class="polaroid__header">
+                    <img class="polaroid__image" src="/examples/crawl-browser/D661E09EEA497B979C3205C5661A8A84962B6DC047A8ECD18A0F0541D7FB3772_227x150.jpg">
                     <div class="avatar"></div>
                 </header>
                 <aside>

@@ -1,11 +1,11 @@
 import {ImageNode} from "../@types/tree";
 import convertShapeNode from "./Shape";
-import * as sha1 from 'js-sha1'
+import * as sha1 from 'js-sha1';
 
-export default (element: HTMLImageElement): ImageNode => {
+export default async (element: HTMLImageElement): Promise<ImageNode> => {
     element.setAttribute('crossOrigin', 'anonymous');
     let dataURL = '';
-    const shapeObject = convertShapeNode(element);
+    const shapeObject = await convertShapeNode(element);
     shapeObject.type = 'image';
 
     const canvas = document.createElement('canvas');
@@ -24,7 +24,7 @@ export default (element: HTMLImageElement): ImageNode => {
 
     document.body.removeChild(canvas);
 
-    return Object.assign({}, shapeObject, {
+    const node: ImageNode = (Object.assign({}, shapeObject, {
         type: 'image',
         image: {
             naturalWidth: element.naturalWidth,
@@ -33,6 +33,8 @@ export default (element: HTMLImageElement): ImageNode => {
             name: sha1(dataURL),
             ext: 'png'
         }
-    })
+    }));
 
+    return Promise.resolve(node);
 }
+

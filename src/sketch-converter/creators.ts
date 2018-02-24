@@ -10,36 +10,12 @@ import {
     SketchPage,
     SketchPath,
     SketchRect,
-    SketchRectangle, SketchShadow,
+    SketchRectangle, SketchRulerData, SketchShadow,
     SketchShapeGroup,
     SketchStyle, SketchSymbolMaster, SketchText, SketchTextStyle,
     SketchUser, UUID
 } from "../@types/sketch";
-// import uuid from "./util/uuid";
-
-const uuid = (): string => {
-    let uuid = '', ii;
-    for (ii = 0; ii < 32; ii += 1) {
-        switch (ii) {
-            case 8:
-            case 20:
-                uuid += '-';
-                uuid += (Math.random() * 16 | 0).toString(16);
-                break;
-            case 12:
-                uuid += '-';
-                uuid += '4';
-                break;
-            case 16:
-                uuid += '-';
-                uuid += (Math.random() * 4 | 8).toString(16);
-                break;
-            default:
-                uuid += (Math.random() * 16 | 0).toString(16);
-        }
-    }
-    return uuid.toUpperCase();
-};
+import uuid from "../util/uuid";
 
 export const createSketchCurvePoint = (
     from: Position,
@@ -247,7 +223,7 @@ export const createShapeGroup = (
 
 export const createPage = (
     layers: Array<SketchArtboard | SketchLayer | SketchSymbolMaster>,
-    number: number = 1
+    name: string
 ): SketchPage => {
     return {
         _class: "page",
@@ -280,7 +256,7 @@ export const createPage = (
         isVisible: true,
         layerListExpandedType: 0,
         layers: layers,
-        name: `Page ${number}`,
+        name: name,
         nameIsFixed: false,
         resizingConstraint: 63,
         resizingType: 0,
@@ -333,7 +309,7 @@ export const createSketchDocument = (
             _class: "sharedTextStyleContainer",
             objects: []
         },
-        pages: pages.map((page:SketchPage) => ({
+        pages: pages.map((page: SketchPage) => ({
                 _class: "MSJSONFileReference",
                 _ref: `pages/${page.do_objectID}`,
                 _ref_class: "MSImmutablePage"
@@ -381,7 +357,14 @@ export const createMetaDocument = (
         fonts: [],
         pagesAndArtboards: pages.reduce((previous: object, page: SketchPage): object => {
             previous[page.do_objectID] = {
-                artboards: {},
+                artboards: page.layers.reduce((prev: object, layer: SketchLayer) => {
+                    if (layer._class === 'symbolMaster') {
+                        prev[layer['symbolID']] = {
+                            name: layer.name
+                        }
+                    }
+                    return prev;
+                },{}),
                 name: page.name
             };
             return previous;
@@ -563,5 +546,75 @@ export const createSketchGroup = (
         shouldBreakMaskChain: false,
         hasClickThrough: false,
         layers: layers,
+    }
+};
+
+export const createSketchSymbolMaster = (
+    name: string,
+    width: number,
+    height: number,
+    layers: SketchLayer[],
+):SketchSymbolMaster => {
+    return {
+        _class: "symbolMaster",
+        backgroundColor: {
+            _class: "color",
+            alpha: 1,
+            blue: 1,
+            green: 1,
+            red: 1
+        },
+        changeIdentifier: 0,
+        do_objectID: uuid(),
+        exportOptions: {
+            _class: "exportOptions",
+            exportFormats: [],
+            includedLayerIds: [],
+            layerOptions: 0,
+            shouldTrim: false
+        },
+        frame: {
+            _class: "rect",
+            constrainProportions: false,
+            height: height,
+            width: width,
+            x: 0,
+            y: 0
+        },
+        hasBackgroundColor: false,
+        hasClickThrough: true,
+        horizontalRulerData: {
+            _class: "rulerData",
+            base: 0,
+            guides: []
+        },
+        includeBackgroundColorInExport: true,
+        includeBackgroundColorInInstance: false,
+        includeInCloudUpload: true,
+        isFlippedHorizontal: false,
+        isFlippedVertical: false,
+        isLocked: false,
+        isVisible: true,
+        layerListExpandedType: 0,
+        layers: layers,
+        name: name,
+        nameIsFixed: false,
+        resizesContent: false,
+        resizingConstraint: 63,
+        resizingType: 0,
+        rotation: 0,
+        shouldBreakMaskChain: true,
+        style: {
+            _class: "style",
+            endDecorationType: 0,
+            miterLimit: 10,
+            startDecorationType: 0
+        },
+        symbolID: uuid(name),
+        verticalRulerData: {
+            _class: "rulerData",
+            base: 0,
+            guides: []
+        }
     }
 };
