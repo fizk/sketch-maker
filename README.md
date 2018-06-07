@@ -451,3 +451,9 @@ getDataFromBrowser('http://localhost:9090/examples/crawl-browser', '[data-sketch
     .catch(console.error);
 ```
 
+## Security 
+When getting the _in-between format_ from the browser, under the hood, [puppeteer](https://github.com/GoogleChrome/puppeteer)
+calls Chromium.  When images are converted into a Base64 string, they are loaded into a `<canvas />` element, but as 
+a security contraint, only same-domain images can be loaded that way. Your images may come from an image-server in which
+case they would not be on the same domain as the rest of the page. For this to still work, Chromium is started with the 
+`--disable-web-security`.

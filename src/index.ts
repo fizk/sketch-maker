@@ -14,18 +14,20 @@ import hoist from './dom-converter/hoist';
 import zip from './zip-converter';
 import findResources from './resources-extractor';
 
-getDataFromBrowser('http://localhost:9090/examples/crawl-browser', '[data-sketch]')
+getDataFromBrowser('http://www.visir.is/', 'body')
+// getDataFromBrowser('http://localhost:9090/examples/crawl-browser', '[data-sketch]')
+// getDataFromBrowser('http://localhost:9001/iframe.html?selectedKind=SalesStats&selectedStory=Many%20property%20types%20and%20suburbs%2C%20agent%20with%20specified%20experience&full=0&addons=1&stories=1&panelRight=1&addonPanel=REACT_STORYBOOK%2Freadme%2Fpanel', 'section.sales-stats-container')
+// getDataFromBrowser('http://localhost:9001/iframe.html?selectedKind=Listings&selectedStory=Standard%20Profile%20Listings%20Cell&full=0&addons=1&stories=1&panelRight=1&addonPanel=REACT_STORYBOOK%2Freadme%2Fpanel', '.frame > div')
     .then((components: GenericNode[]) => {
         console.log(`Extracted ${components.length} components from server`);
-        console.log(JSON.stringify(components, undefined, 4));
         return components
     })
-    .then((components: GenericNode[]) => {
-        console.log(`Grouping by BEM namings`);
-
-        // GROUP: group by BEM naming convention.
-        return components.map(bemConverter);
-    })
+    // .then((components: GenericNode[]) => {
+    //     console.log(`Grouping by BEM namings`);
+    //
+    //     // GROUP: group by BEM naming convention.
+    //     return components.map(bemConverter);
+    // })
     .then((components: GenericNode[]) => {
         console.log(`Hoisting every component up to {0, 0}`);
 

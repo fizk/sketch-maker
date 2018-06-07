@@ -8,21 +8,18 @@ const getStuff = (url: string | null) => {
         return Promise.resolve(null);
     }
 
-    let dataURL = '';
-
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.addEventListener('load', (event) => {
             const canvas = document.createElement('canvas');
             document.body.appendChild(canvas);
             const context = canvas.getContext('2d');
-
             canvas.height = img.naturalHeight;
             canvas.width = img.naturalWidth;
 
             try {
                 context.drawImage(img, 0, 0);
-                dataURL = canvas.toDataURL('image/png').replace('data:image/png;base64,', '');
+                const dataURL = canvas.toDataURL('image/png').replace('data:image/png;base64,', '');
                 document.body.removeChild(canvas);
                 resolve({
                     naturalWidth: img.naturalWidth,
@@ -33,13 +30,11 @@ const getStuff = (url: string | null) => {
                 });
             } catch (error) {
                 document.body.removeChild(canvas);
-                reject(error);
+                resolve(null);
             }
-
         });
         img.src = url;
     });
-
 };
 
 

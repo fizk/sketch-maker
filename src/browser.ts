@@ -3,7 +3,9 @@ import * as devices  from 'puppeteer/DeviceDescriptors';
 import {GenericNode} from "./@types/tree";
 
 export default async (url: string, selector: string): Promise<GenericNode[]> => {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: ['--disable-web-security']
+    });
     const page = await browser.newPage();
     // await page.emulate(devices['iPhone X']);
     await page.goto(url);

@@ -9,7 +9,7 @@
             "./src/@types",
             "./src/@types/index.d.ts"
         ],
-        "lib": ["es6", "esnext.array", "dom"],
+        "lib": ["es6", "dom", "es2017"],
         "outDir": "./lib",
         "rootDirs": ["./src", "/test"]
     },
